@@ -1,1 +1,2 @@
-'{"name":"my-app","scripts":{"test":"node test.js","start":"node app.js"}}' 
+echo '{"name":"my-app","scripts":{"test":"node test.js","start":"node app.js"}}' > package.json
+

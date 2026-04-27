@@ -30,3 +30,44 @@ jobs:
 
       - name: Build
         run: npm run build --if-present
+        # Add this job to ci.yml after the build-and-test job
+
+  deploy-staging:
+    runs-on: ubuntu-latest
+    needs: build-and-test          # Only runs if CI passes
+    if: github.ref == 'refs/heads/develop'
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Deploy to staging
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.STAGING_HOST }}
+          username: ${{ secrets.STAGING_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /var/www/my-app
+            git pull origin develop
+            npm install
+            pm2 restart my-app
+
+  deploy-production:
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    if: github.ref == 'refs/heads/main'   # Only on main branch
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Deploy to production
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /var/www/my-app
+            git pull origin main
+            npm install
+            pm2 restart my-app
